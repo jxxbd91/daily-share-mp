@@ -8,14 +8,14 @@ module.exports = {
     entry: '/',
     router: {
         home: [
-            '/(home|index)?',
-            '/index.html',
-            '/test/(home|index)',
+            '/home',
         ],
-        other: [
-            '/test/list/:id',
-            '/test/detail/:id',
+        history: [
+            '/history'
         ],
+        container: [
+            '/container'
+        ]
     },
     redirect: {
         notFound: 'home',
@@ -38,7 +38,19 @@ module.exports = {
         windowScroll: false,
         backgroundColor: '#F7F7F7',
     },
-    pages: {},
+    pages: {
+        home: {
+            extra: {
+                navigationBarTitleText: '每日分享'
+            }
+        },
+        history: {
+            extra: {
+                navigationBarTitleText: '分享记录'
+            },
+            reachBottom: true
+        }
+    },
     optimization: {
 		domSubTreeLevel: 10,
 

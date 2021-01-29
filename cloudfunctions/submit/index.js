@@ -1,5 +1,6 @@
 // 云函数入口文件
 const cloud = require('wx-server-sdk')
+const axios = require('axios')
 
 cloud.init()
 
@@ -31,13 +32,26 @@ async function validate(submitData) {
   }
 }
 
-exports.main = async (event, context) => {
+async function getDocTitle(url) {
+  const html = (await axios.get(url)).data
+  const reg = /<title.*>(.*)<\/title>/g
+  const res = reg.exec(html) || []
+  return res[1]
+}
+
+exports.main = async (event) => {
   let result = null
+  const context = cloud.getWXContext()
   try {
     await validate(event)
+    console.log(event)
+    const docTitle = await getDocTitle(event.url) || event.url
     result = await db.collection(COLLECTION_NAME).add({
       data: {
         ...event,
+        title: docTitle,
+        openid: context.OPENID,
+        appId: context.APPID,
         timestramp: Date.now()
       }
     })
