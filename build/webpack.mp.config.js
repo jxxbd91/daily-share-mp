@@ -197,6 +197,7 @@ module.exports = {
   },
   plugins: [
     new webpack.DefinePlugin({
+      'process.env.CLOUD_ENV': isDevelop ? '"dev"' : '"prod"',
       'process.env.isMiniprogram': process.env.isMiniprogram, // 注入环境变量，用于业务代码判断
     }),
     new MiniCssExtractPlugin({

@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
+import { CLOUD_ENV } from '../../constants'
 
 export default function createApp() {
   const container = document.createElement('div')
@@ -9,7 +10,13 @@ export default function createApp() {
 
   Vue.config.productionTip = false
 
-  wx.cloud.init()
+  wx.cloud.init({
+    env: CLOUD_ENV
+  })
+
+  wx.setEnableDebug({
+    enableDebug: true
+  })
 
   return new Vue({
     el: '#app',

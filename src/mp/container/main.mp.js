@@ -6,7 +6,13 @@ export default function createApp() {
   container.id = 'app'
   document.body.appendChild(container)
 
+  document.title = '每日分享'
+
   wx.cloud.init()
+
+  wx.setEnableDebug({
+    enableDebug: true
+  })
 
   Vue.config.productionTip = false
 

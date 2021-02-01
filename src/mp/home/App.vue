@@ -1,16 +1,17 @@
 <template>
   <div id="app" class="wrap">
     <div class="user-info">
-      <img class="avatar" v-if="userInfo.avatarUrl" :src="userInfo.avatarUrl" />
+      <img @click="avatarHandle"
+        class="avatar" v-if="userInfo.avatarUrl" :src="userInfo.avatarUrl" />
       <span class="nick-name">{{nickNameInUI}}你好:</span>
     </div>
     <label for="url" class="lb">
       请粘贴所需要分享的链接：
-      <input v-model="url" id="url" class="url-box" :focus="true"/>
+      <input v-model.trim="url" id="url" class="url-box" :focus="true"/>
     </label>
     <label for="content" class="lb">
       请输入想要分享的内容：
-      <textarea v-model="content" rows="4" class="content-box"></textarea>
+      <textarea v-model.trim="content" rows="4" class="content-box" placeholder="选填"></textarea>
     </label>
     <div class="btn-box">
       <wx-button
@@ -22,6 +23,7 @@
 
 <script>
 import Vue from 'vue'
+import api from 'kbone-api'
 
 export default Vue.extend({
   name: 'App',
@@ -48,9 +50,24 @@ export default Vue.extend({
     }
   },
   methods: {
+    validate() {
+      const url = this.url
+      if (!url || /^https?:\/\/.*/g.test(url)) {
+        wx.showToast({
+          title: '请输入正确的分享的链接',
+          icon: 'none'
+        })
+        return false
+      }
+      return true
+    },
     submitHandle(event) {
+      if (!this.validate()) {
+        return
+      }
       const { userInfo } = event.$_detail
       if (userInfo) {
+        api.showLoading()
         if (!this.initSuccess) {
           this.userInfo = userInfo
         }
@@ -76,11 +93,16 @@ export default Vue.extend({
           }
         }, (err) => {
           console.log('err', err)
+        }).then(() => {
+          api.hideLoading()
         })
       }
     },
     viewHandle() {
       window.open('/history')
+    },
+    avatarHandle() {
+      window.open('/history?isMySelf=true')
     }
   }
 })
