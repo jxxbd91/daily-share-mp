@@ -7,9 +7,6 @@ export default function createApp() {
   container.id = 'app'
   document.body.appendChild(container)
   const isMySelf = (decodeURIComponent(location.search).match(/isMySelf=([^&\b]*)/) || [])[1] === 'true'
-  wx.setNavigationBarTitle({
-    title: isMySelf ? '我的分享记录' : '分享记录'
-  })
   wx.cloud.init({
     env: CLOUD_ENV
   })
