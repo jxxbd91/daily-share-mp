@@ -18,8 +18,8 @@ module.exports = {
   mode: 'production',
   entry: {
     // js 入口
-    home: path.resolve(__dirname, '../src/mp/home/main.mp.js'),
     history: path.resolve(__dirname, '../src/mp/history/main.mp.js'),
+    home: path.resolve(__dirname, '../src/mp/home/main.mp.js'),
     container: path.resolve(__dirname, '../src/mp/container/main.mp.js'),
   },
   output: {

@@ -1,5 +1,16 @@
 <template>
   <div class="history-box">
+    <div class="history-btn-box">
+      <wx-button
+        type="primary"
+        class="to-share history-btn"
+        @click="toShareHandle"
+      >我要分享</wx-button>
+      <p
+        class="history-scope-btn"
+        @click="() => this.isMySelf = !this.isMySelf"
+      >查看{{!isMySelf ? '我的' : '全部'}} ⬇️</p>
+    </div>
     <ul class="history-list" v-if="finalList.length > 0">
       <li class="history-item" v-for="item in finalList" :key="item._id">
         <p class="history-info">
@@ -11,7 +22,13 @@
       </li>
       <li v-if="isEnd" class="history-end-line">没有更多内容了~</li>
     </ul>
-    <div v-else class="history-empty">暂无数据</div>
+    <div v-else class="history-empty">
+      <wx-button
+        type="primary"
+        class="to-share history-btn"
+        @click="toShareHandle"
+      >去分享</wx-button>
+    </div>
   </div>
 </template>
 
@@ -23,12 +40,8 @@ export default {
       total: 0,
       pageNo: 1,
       pageSize: 10,
-      isEnd: false
-    }
-  },
-  props: {
-    isMySelf: {
-      type: Boolean
+      isEnd: false,
+      isMySelf: false
     }
   },
   created() {
@@ -44,12 +57,19 @@ export default {
       }))
     }
   },
+  watch: {
+    isMySelf() {
+      this.historyList = []
+      this.pageNo = 1
+      this.fetchAnRender()
+    }
+  },
   methods: {
-    queryList(isMySelf = false) {
+    queryList() {
       return wx.cloud.callFunction({
         name: 'list',
         data: {
-          isMySelf,
+          isMySelf: this.isMySelf,
           pageSize: this.pageSize,
           pageNo: this.pageNo
         }
@@ -66,13 +86,21 @@ export default {
       }
     },
     async fetchAnRender() {
-      const { data = [], total } = (await this.queryList(this.isMySelf)).result
+      const { data = [], total } = (await this.queryList()).result
       this.historyList = [...this.historyList, ...data]
       this.total = total
       if (this.total <= this.historyList.length) {
         this.isEnd = true
         window.removeEventListener('reachbottom', this.reachbottomFn)
+      } else {
+        this.isEnd = false
       }
+    },
+    toShareHandle() {
+      window.open('/home')
+    },
+    myShareHandle() {
+
     }
   }
 }
@@ -85,7 +113,7 @@ export default {
 
   .history-list {
     padding: 0;
-    margin: 0;
+    margin: 50px 0 0;
   }
 
   .history-item {
@@ -138,5 +166,28 @@ export default {
     justify-content: center;
     align-items: center;
     color: #888;
+  }
+
+  .history-btn-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 30px;
+    padding: 10px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    box-shadow: 0 1px 2px #ccc;
+  }
+
+  .history-btn {
+    padding: 5px 10px;
+  }
+
+  .history-scope-btn {
+    color: #333;
+    font-size: 14px;
   }
 </style>
