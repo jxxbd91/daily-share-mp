@@ -64,5 +64,6 @@ module.exports = {
     'Behavior': true,
     'wx': true,
     'getCurrentPages': true,
+    '__wxConfig': true
   }
 }
