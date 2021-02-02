@@ -9,6 +9,7 @@
         <a :href="item.url" target="_blank">{{item.title}}</a>
         <div class="history-content" v-if="item.content">{{item.content}}</div>
       </li>
+      <li v-if="isEnd" class="history-end-line">没有更多内容了~</li>
     </ul>
     <div v-else class="history-empty">暂无数据</div>
   </div>
@@ -18,7 +19,11 @@
 export default {
   data() {
     return {
-      historyList: []
+      historyList: [],
+      total: 0,
+      pageNo: 1,
+      pageSize: 10,
+      isEnd: false
     }
   },
   props: {
@@ -26,12 +31,9 @@ export default {
       type: Boolean
     }
   },
-  async created() {
-    this.historyList = (await this.queryList(this.isMySelf)).result.data || []
-    console.log(this.historyList)
-    window.addEventListener('reachbottom', () => {
-      console.log('reachbottom1')
-    })
+  created() {
+    this.fetchAnRender()
+    window.addEventListener('reachbottom', this.reachbottomFn)
   },
   computed: {
     finalList() {
@@ -47,13 +49,30 @@ export default {
       return wx.cloud.callFunction({
         name: 'list',
         data: {
-          isMySelf
+          isMySelf,
+          pageSize: this.pageSize,
+          pageNo: this.pageNo
         }
       })
     },
     getTime(time) {
       const d = new Date(time)
       return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`
+    },
+    reachbottomFn() {
+      if (this.historyList.length < this.total) {
+        this.pageNo += 1
+        this.fetchAnRender()
+      }
+    },
+    async fetchAnRender() {
+      const { data = [], total } = (await this.queryList(this.isMySelf)).result
+      this.historyList = [...this.historyList, ...data]
+      this.total = total
+      if (this.total <= this.historyList.length) {
+        this.isEnd = true
+        window.removeEventListener('reachbottom', this.reachbottomFn)
+      }
     }
   }
 }
@@ -111,5 +130,13 @@ export default {
     align-items: center;
     font-size: 16px;
     color: #bbb;
+  }
+
+  .history-end-line {
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #888;
   }
 </style>

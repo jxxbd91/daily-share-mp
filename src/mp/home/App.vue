@@ -10,7 +10,7 @@
       <input v-model.trim="url" id="url" class="url-box" :focus="true"/>
     </label>
     <label for="content" class="lb">
-      请输入想要分享的内容：
+      说说你的想法：
       <textarea v-model.trim="content" rows="4" class="content-box" placeholder="选填"></textarea>
     </label>
     <div class="btn-box">
@@ -143,7 +143,7 @@ export default Vue.extend({
     border: 1px solid #eeeeee;
     width: 100%;
     margin-bottom: 20px;
-    padding: 2px;
+    padding: 5px;
   }
 
   .btn-box {

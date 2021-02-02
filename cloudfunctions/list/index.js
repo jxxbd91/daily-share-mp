@@ -12,15 +12,28 @@ const COLLECTION_NAME = 'shareHistory'
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext()
 
-  const { isMySelf = false } = event
+  const { isMySelf = false, pageSize = 10, pageNo = 1 } = event
+  const pageNoStart = pageNo - 1
   let list = []
+  let total = 0
+  const p = await db.collection(COLLECTION_NAME)
   try {
     if (isMySelf) {
-      list = await db.collection(COLLECTION_NAME).where({
+      total = (await p.count()).total
+      list = await p.where({
         openid: wxContext.OPENID
-      }).get()
+      })
+        .orderBy('timestramp', 'desc')
+        .skip(pageNoStart * pageSize)
+        .limit(pageSize)
+        .get()
     } else {
-      list = await db.collection(COLLECTION_NAME).get()
+      total = (await p.count()).total
+      list = await p
+        .orderBy('timestramp', 'desc')
+        .skip(pageNoStart * pageSize)
+        .limit(pageSize)
+        .get()
     }
   } catch (err) {
     return {
@@ -28,6 +41,7 @@ exports.main = async (event) => {
       resultMsg: '查询失败'
     }
   }
+  list.total = total
   return {
     resultCode: '1000',
     ...list
