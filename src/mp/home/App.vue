@@ -52,7 +52,7 @@ export default Vue.extend({
   methods: {
     validate() {
       const url = this.url
-      if (!url || /^https?:\/\/.*/g.test(url)) {
+      if (!url || !/^https?:\/\/.*/g.test(url)) {
         wx.showToast({
           title: '请输入正确的分享的链接',
           icon: 'none'
