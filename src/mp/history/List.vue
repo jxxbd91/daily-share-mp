@@ -1,6 +1,6 @@
 <template>
   <div class="history-box">
-    <div class="history-btn-box">
+    <div class="history-btn-box" v-if="!initLoading">
       <wx-button
         type="primary"
         class="to-share history-btn"
@@ -9,25 +9,25 @@
       <p
         class="history-scope-btn"
         @click="() => this.isMySelf = !this.isMySelf"
-      >查看{{!isMySelf ? '我的' : '全部'}} ⬇️</p>
+      >查看{{!isMySelf ? '我的' : '全部'}}分享 ⬇️</p>
     </div>
-    <ul class="history-list" v-if="finalList.length > 0">
-      <li class="history-item" v-for="item in finalList" :key="item._id">
+    <ul class="history-list" :class="{'empty': isListEmpty}" v-if="!isListEmpty">
+      <li class="history-item"
+        v-for="item in finalList"
+        :key="item._id"
+        @click="itemHandle(item)"
+      >
         <p class="history-info">
           <span class="history-user">分享者: {{item.nickName}}</span>
           <span class="history-time">{{item.time}}</span>
         </p>
-        <a :href="item.url" target="_blank">{{item.title}}</a>
+        <a>{{item.title}}</a>
         <div class="history-content" v-if="item.content">{{item.content}}</div>
       </li>
       <li v-if="isEnd" class="history-end-line">没有更多内容了~</li>
     </ul>
-    <div v-else class="history-empty">
-      <wx-button
-        type="primary"
-        class="to-share history-btn"
-        @click="toShareHandle"
-      >去分享</wx-button>
+    <div v-else-if="!initLoading && isListEmpty" class="history-empty">
+      <p class="history-empty-txt">暂无分享记录~~</p>
     </div>
   </div>
 </template>
@@ -41,7 +41,8 @@ export default {
       pageNo: 1,
       pageSize: 10,
       isEnd: false,
-      isMySelf: false
+      isMySelf: false,
+      initLoading: true
     }
   },
   created() {
@@ -55,12 +56,17 @@ export default {
         url: `/container?targetUrl=${encodeURIComponent(item.url)}`,
         time: this.getTime(item.timestramp)
       }))
+    },
+    isListEmpty() {
+      return this.finalList.length === 0
     }
   },
   watch: {
     isMySelf() {
       this.historyList = []
       this.pageNo = 1
+      this.isEnd = false
+      this.initLoading = true
       this.fetchAnRender()
     }
   },
@@ -86,12 +92,20 @@ export default {
       }
     },
     async fetchAnRender() {
+      if (this.initLoading) {
+        wx.showLoading({
+          title: '加载中'
+        })
+      }
       const { data = [], total } = (await this.queryList()).result
+      if (this.initLoading) {
+        wx.hideLoading()
+      }
+      this.initLoading = false
       this.historyList = [...this.historyList, ...data]
       this.total = total
       if (this.total <= this.historyList.length) {
         this.isEnd = true
-        window.removeEventListener('reachbottom', this.reachbottomFn)
       } else {
         this.isEnd = false
       }
@@ -99,8 +113,8 @@ export default {
     toShareHandle() {
       window.open('/home')
     },
-    myShareHandle() {
-
+    itemHandle(item) {
+      window.open(item.url)
     }
   }
 }
@@ -114,6 +128,10 @@ export default {
   .history-list {
     padding: 0;
     margin: 50px 0 0;
+  }
+
+  .history-list.empty {
+    margin-top: 0;
   }
 
   .history-item {
@@ -158,6 +176,13 @@ export default {
     align-items: center;
     font-size: 16px;
     color: #bbb;
+    flex-direction: column;
+  }
+
+  .history-empty-txt {
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: #666;
   }
 
   .history-end-line {
