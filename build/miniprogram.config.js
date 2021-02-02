@@ -39,16 +39,21 @@ module.exports = {
         backgroundColor: '#F7F7F7',
     },
     pages: {
+        history: {
+            extra: {
+                navigationBarTitleText: '每日分享'
+            },
+            reachBottom: true
+        },
         home: {
             extra: {
                 navigationBarTitleText: '每日分享'
             }
         },
-        history: {
+        container: {
             extra: {
-                navigationBarTitleText: '分享记录'
+                navigationBarTitleText: '每日分享'
             },
-            reachBottom: true
         }
     },
     optimization: {

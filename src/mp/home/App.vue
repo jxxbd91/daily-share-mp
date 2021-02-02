@@ -1,7 +1,7 @@
 <template>
   <div id="app" class="wrap">
     <div class="user-info">
-      <img @click="avatarHandle"
+      <img
         class="avatar" v-if="userInfo.avatarUrl" :src="userInfo.avatarUrl" />
       <span class="nick-name">{{nickNameInUI}}你好:</span>
     </div>
@@ -16,7 +16,6 @@
     <div class="btn-box">
       <wx-button
       type="primary" class="btn" open-type="getUserInfo" @getuserinfo="submitHandle">分享</wx-button>
-      <wx-button type="default" class="btn" @click="viewHandle">查看记录</wx-button>
     </div>
   </div>
 </template>
@@ -85,6 +84,8 @@ export default Vue.extend({
               title: '分享成功',
               icon: 'success'
             })
+            this.url = ''
+            this.content = ''
           } else {
             wx.showModal({
               title: res.result.resultMessage,
@@ -97,12 +98,6 @@ export default Vue.extend({
           api.hideLoading()
         })
       }
-    },
-    viewHandle() {
-      window.open('/history')
-    },
-    avatarHandle() {
-      window.open('/history?isMySelf=true')
     }
   }
 })
