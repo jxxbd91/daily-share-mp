@@ -47,7 +47,7 @@ module.exports = {
         },
         home: {
             extra: {
-                navigationBarTitleText: '每日分享'
+                navigationBarTitleText: '我要分享'
             }
         },
         container: {
