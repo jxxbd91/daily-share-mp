@@ -2,6 +2,21 @@ import Vue from 'vue'
 import List from './List.vue'
 import { CLOUD_ENV, subscribeTemplateIds } from '../../constants'
 
+function withPromise(fn, params) {
+  const options = { ...params }
+  return new Promise((resolve, reject) => {
+    options.success = (info) => {
+      if (typeof params.success === 'function') params.success()
+      resolve(info)
+    }
+    options.fail = (err) => {
+      if (typeof params.fail === 'function') params.fail()
+      reject(err)
+    }
+    fn(options)
+  })
+}
+
 export default async function createApp() {
   const container = document.createElement('div')
   container.id = 'app'
@@ -17,51 +32,68 @@ export default async function createApp() {
     withSubscriptions: true
   })
 
-  if (!mainSwitch) {
-    wx.showModal({
-      title: '请开启消息订阅',
-      showCancel: false
-    })
+  console.log('itemSettings::', itemSettings)
 
-    return null
+  if (!mainSwitch) {
+    try {
+      await withPromise(wx.showModal, {
+        title: '请开启消息订阅',
+        showCancel: false
+      })
+
+      wx.reLaunch()
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   if (!itemSettings[subscribeTemplateIds.message] && !itemSettings[subscribeTemplateIds.todo]) {
     try {
-      wx.showModal({
+      await withPromise(wx.showModal, {
         title: '请订阅消息推送',
         content: '您将接收到别人分享的消息推送，请勾选保持开启',
         showCancel: false,
-        confirmText: '订阅',
-        success() {
-          wx.requestSubscribeMessage({
-            tmplIds: Object.values(subscribeTemplateIds)
-          })
-        }
+        confirmText: '订阅'
+      })
+
+      await withPromise(wx.requestSubscribeMessage, {
+        tmplIds: Object.values(subscribeTemplateIds)
       })
     } catch (err) {
-      console.log(err)
+      console.log(err, '1')
       wx.reLaunch()
     }
-  }
-
-  if (!itemSettings[subscribeTemplateIds.message]) {
+  } else if (!itemSettings[subscribeTemplateIds.message]) {
     try {
-      await wx.requestSubscribeMessage({
+      await withPromise(wx.showModal, {
+        title: '请订阅消息推送',
+        content: '您将接收到别人分享的消息推送，请勾选保持开启',
+        showCancel: false,
+        confirmText: '订阅'
+      })
+
+      await withPromise(wx.requestSubscribeMessage, {
         tmplIds: [subscribeTemplateIds.message]
       })
     } catch (err) {
-      wx.relaunch()
+      console.log(err, '2')
+      wx.reLaunch()
     }
-  }
-
-  if (!itemSettings[subscribeTemplateIds.todo]) {
+  } else if (!itemSettings[subscribeTemplateIds.todo]) {
     try {
-      await wx.requestSubscribeMessage({
+      await withPromise(wx.showModal, {
+        title: '请订阅消息推送',
+        content: '您将接收到别人分享的消息推送，请勾选保持开启',
+        showCancel: false,
+        confirmText: '订阅'
+      })
+
+      await withPromise(wx.requestSubscribeMessage, {
         tmplIds: [subscribeTemplateIds.todo]
       })
     } catch (err) {
-      wx.relaunch()
+      console.log(err, '3')
+      wx.reLaunch()
     }
   }
 

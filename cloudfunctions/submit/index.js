@@ -7,10 +7,11 @@ cloud.init({
 })
 
 const db = cloud.database()
-const COLLECTION_NAME = 'shareHistory'
+const SHARE_HISTORY_COLLECTION_NAME = 'shareHistory'
+const OPENID_LIST_COLLECTION_NAME = 'openidList'
 
 function notNull(val, key) {
-  if (!val) throw `【${key}】 不能为空`
+  if (!val) throw new Error(`【${key}】 不能为空`)
 }
 
 async function validate(submitData) {
@@ -21,13 +22,13 @@ async function validate(submitData) {
   notNull(url, '分享链接')
   console.log(url, 'url')
   try {
-    const { data } = await db.collection(COLLECTION_NAME).where({
+    const { data } = await db.collection(SHARE_HISTORY_COLLECTION_NAME).where({
       url
     }).get()
     if (data.length > 0) {
       console.log(data, 'urlHistory')
       const [urlHistory] = data
-      throw `用户【${urlHistory.nickName}】已经分享过同样的内容`
+      throw new Error(`用户【${urlHistory.nickName}】已经分享过同样的内容`)
     }
   } catch (err) {
     throw err
@@ -41,6 +42,59 @@ async function getDocTitle(url) {
   return res[1]
 }
 
+async function queryOpenidList() {
+  try {
+    const { data } = await db.collection(OPENID_LIST_COLLECTION_NAME).get()
+    return data
+  } catch (err) {
+    console.log(err)
+    return []
+  }
+}
+
+/**
+ * 消息推送
+ */
+async function sendMsg({ userName, content, title, url }) {
+  const date = new Date()
+  const openidList = await queryOpenidList()
+  if (openidList.length === 0) return
+
+  const pageUrl = `https://test.miniprogram.com/container?targetUrl=${url}`
+
+  const page = `pages/container/index?type=open&targeturl=${encodeURIComponent(pageUrl)}`
+
+  console.log(page)
+  try {
+    await Promise.all(
+      openidList.map(
+        ({ openid }) => cloud.openapi.subscribeMessage.send({
+          touser: openid,
+          templateId: 'ENXmRqo56mNUsQXWWHjCv7xS8SwEbUMOqsP_7XattGo',
+          page,
+          miniprogramState: 'trial',
+          data: {
+            thing1: {
+              value: title.substring(0, 7)
+            },
+            thing3: {
+              value: content
+            },
+            date4: {
+              value: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+            },
+            thing2: {
+              value: userName
+            }
+          }
+        })
+      )
+    )
+  } catch (err) {
+    console.log(err)
+  }
+}
+
 exports.main = async (event) => {
   let result = null
   const context = cloud.getWXContext()
@@ -48,7 +102,7 @@ exports.main = async (event) => {
     await validate(event)
     console.log(event)
     const docTitle = await getDocTitle(event.url) || event.url
-    result = await db.collection(COLLECTION_NAME).add({
+    result = await db.collection(SHARE_HISTORY_COLLECTION_NAME).add({
       data: {
         ...event,
         title: docTitle,
@@ -57,10 +111,16 @@ exports.main = async (event) => {
         timestramp: Date.now()
       }
     })
+    await sendMsg({
+      userName: event.nickName,
+      title: docTitle,
+      content: event.content || '你的好友有新的分享',
+      url: event.url
+    })
   } catch (err) {
     return {
       resultCode: '2001',
-      resultMessage: err
+      resultMessage: String(err)
     }
   }
 

@@ -47,6 +47,7 @@ export default {
   },
   created() {
     this.fetchAnRender()
+    this.openidInit()
     window.addEventListener('reachbottom', this.reachbottomFn)
   },
   computed: {
@@ -71,6 +72,11 @@ export default {
     }
   },
   methods: {
+    openidInit() {
+      wx.cloud.callFunction({
+        name: 'openidInit'
+      })
+    },
     queryList() {
       return wx.cloud.callFunction({
         name: 'list',
