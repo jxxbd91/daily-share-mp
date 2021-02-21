@@ -64,8 +64,8 @@ async function sendMsg({ userName, content, title, url }) {
 
   const page = `pages/container/index?type=open&targeturl=${encodeURIComponent(pageUrl)}`
 
-  console.log(page)
   try {
+    const titleValue = title.length > 10 ? `${title.substring(0, 10)}...` : title
     await Promise.all(
       openidList.map(
         ({ openid }) => cloud.openapi.subscribeMessage.send({
@@ -75,7 +75,7 @@ async function sendMsg({ userName, content, title, url }) {
           miniprogramState: 'trial',
           data: {
             thing1: {
-              value: title.substring(0, 7)
+              value: titleValue
             },
             thing3: {
               value: content
