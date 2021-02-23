@@ -14,8 +14,8 @@ const beginDate = new Date('2021-2-22').getTime()
 async function queryTodayOpenid() {
   const time = new Date().toLocaleDateString()
   const currentDate = new Date(time).getTime()
-  const dur = (currentDate - beginDate) / 24 / 3600 / 1000
   const { data: userList = [] } = await db.collection(OPENID_LIST_COLLECTION_NAME).get()
+  const dur = ((currentDate - beginDate) / 24 / 3600 / 1000) % userList.length
   console.log(dur, 'dur:::')
   return (userList[dur] || {}).openid
 }
