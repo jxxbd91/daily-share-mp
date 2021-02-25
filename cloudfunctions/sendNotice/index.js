@@ -46,7 +46,7 @@ exports.main = async (event) => {
         touser: todayOpenid,
         templateId: 'SSbI4_53wpx2EF097sQ8RhKImsWdGZULyQm0M7irfwc',
         page: 'pages/home/index',
-        miniprogramState: 'trial',
+        miniprogramState: 'formal',
         data: {
           thing1: {
             value: '请开始你的分享'

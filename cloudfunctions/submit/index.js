@@ -66,19 +66,20 @@ async function sendMsg({ userName, content, title, url }) {
 
   try {
     const titleValue = title.length > 10 ? `${title.substring(0, 10)}...` : title
+    const contentValue = content.length > 10 ? `${content.substring(0, 10)}...` : content
     await Promise.all(
       openidList.map(
         ({ openid }) => cloud.openapi.subscribeMessage.send({
           touser: openid,
           templateId: 'ENXmRqo56mNUsQXWWHjCv7xS8SwEbUMOqsP_7XattGo',
           page,
-          miniprogramState: 'trial',
+          miniprogramState: 'formal',
           data: {
             thing1: {
               value: titleValue
             },
             thing3: {
-              value: content
+              value: contentValue
             },
             date4: {
               value: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
@@ -87,11 +88,13 @@ async function sendMsg({ userName, content, title, url }) {
               value: userName
             }
           }
+        }).catch((err) => {
+          console.log('send err::', err)
         })
       )
     )
   } catch (err) {
-    console.log(err)
+    console.log(err, 'err')
   }
 }
 
