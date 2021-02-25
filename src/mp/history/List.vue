@@ -1,28 +1,40 @@
 <template>
   <div class="history-box">
     <div class="history-btn-box" v-if="!initLoading">
-      <wx-button
-        type="primary"
-        class="to-share history-btn"
-        @click="toShareHandle"
-      >我要分享</wx-button>
+      <div class="btn-list">
+        <wx-button
+          type="primary"
+          class="to-share history-btn"
+          @click="toShareHandle"
+        >去分享</wx-button>
+        <wx-button
+          type="primary"
+          class="history-btn"
+          @click="copyHandle">{{ selectBtnStatus === 'init' ? '选择复制' : '开始复制' }}</wx-button>
+      </div>
       <p
         class="history-scope-btn"
         @click="() => this.isMySelf = !this.isMySelf"
       >查看{{!isMySelf ? '我的' : '全部'}}分享 ⬇️</p>
     </div>
     <ul class="history-list" :class="{'empty': isListEmpty}" v-if="!isListEmpty">
-      <li class="history-item"
-        v-for="item in finalList"
+      <li
+        v-for="(item, index) in finalList"
         :key="item._id"
-        @click="itemHandle(item)"
+        class="history-li"
       >
-        <p class="history-info">
-          <span class="history-user">分享者: {{item.nickName}}</span>
-          <span class="history-time">{{item.time}}</span>
-        </p>
-        <a>{{item.title}}</a>
-        <div class="history-content" v-if="item.content">{{item.content}}</div>
+        <input
+          v-if="selectBtnStatus === 'select'" type="checkbox" v-model="selectListModel[index]" />
+        <div class="history-item"
+          :class="{'select': selectBtnStatus === 'select'}"
+          @click="itemHandle(item)">
+          <p class="history-info">
+            <span class="history-user">分享者: {{item.nickName}}</span>
+            <span class="history-time">{{item.time}}</span>
+          </p>
+          <a>{{item.title}}</a>
+          <div class="history-content" v-if="item.content">{{item.content}}</div>
+        </div>
       </li>
       <li v-if="isEnd" class="history-end-line">没有更多内容了~</li>
     </ul>
@@ -42,7 +54,9 @@ export default {
       pageSize: 10,
       isEnd: false,
       isMySelf: false,
-      initLoading: true
+      initLoading: true,
+      selectListModel: [],
+      selectBtnStatus: 'init' // init select
     }
   },
   created() {
@@ -69,6 +83,9 @@ export default {
       this.isEnd = false
       this.initLoading = true
       this.fetchAnRender()
+    },
+    finalList(newVal) {
+      this.selectListModel = newVal.map((item, index) => this.selectListModel[index] || false)
     }
   },
   methods: {
@@ -121,6 +138,22 @@ export default {
     },
     itemHandle(item) {
       window.open(item.url)
+    },
+    async copyHandle() {
+      if (this.selectBtnStatus === 'init') {
+        this.selectBtnStatus = 'select'
+      } else {
+        const list = this.finalList.filter((_item, index) => this.selectListModel[index])
+        if (list.length < 1) {
+          this.selectBtnStatus = 'init'
+          return
+        }
+        const urlstring = list.map(({ url }) => decodeURIComponent(url.substring(url.indexOf('targetUrl=') + 10))).join('\r\n\r\n')
+        await wx.setClipboardData({
+          data: urlstring
+        })
+        this.selectBtnStatus = 'init'
+      }
     }
   }
 }
@@ -136,8 +169,19 @@ export default {
     margin: 50px 0 0;
   }
 
+  .btn-list {
+    display: flex;
+    align-items: center;
+  }
+
   .history-list.empty {
     margin-top: 0;
+  }
+
+
+  .history-li {
+    display: flex;
+    align-items: center;
   }
 
   .history-item {
@@ -148,6 +192,14 @@ export default {
     padding: 10px 5px;
     padding-bottom: 5px;
     border-radius: 5px;
+    transform: translateX(0);
+    transition: 0.3s;
+    width: 680rpx;
+    flex-shrink: 0;
+  }
+
+  .history-item.select {
+    transform: translateX(20px);
   }
 
   .history-info {
@@ -215,6 +267,10 @@ export default {
 
   .history-btn {
     padding: 5px 10px;
+  }
+
+  .to-share {
+    margin-right: 10px;
   }
 
   .history-scope-btn {
